@@ -56,3 +56,5 @@ hs_err_pid*
 replay_pid*
 
 !dd-java-agent/benchmark/releases/*.jar
+
+test.sh
