@@ -34,6 +34,7 @@ public class StripeInstrumentation extends Instrumenter.Default {
   @Override
   public ElementMatcher<? super net.bytebuddy.description.type.TypeDescription> typeMatcher() {
     return safeHasSuperType(
+      //TODO: do we really need both
         named("com.stripe.net.ApiResource").or(named("com.stripe.model.StripeObject")));
   }
 

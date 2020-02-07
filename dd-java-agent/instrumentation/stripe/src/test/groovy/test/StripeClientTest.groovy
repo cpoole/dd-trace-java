@@ -1,6 +1,8 @@
 package test
 
+import com.stripe.Stripe
 import com.stripe.model.Customer
+import com.stripe.net.ApiResource
 import datadog.trace.agent.test.AgentTestRunner
 import datadog.trace.instrumentation.api.Tags
 
@@ -8,27 +10,42 @@ import static datadog.trace.instrumentation.api.AgentTracer.*
 
 class StripeClientTest extends AgentTestRunner {
 
-  Customer stripeCustomer = Mock()
-
   def setupSpec() {
-
+    Stripe.apiKey = "foo"
   }
 
   def "create customer"() {
     setup:
+
+    GroovyMock(Customer, global: true)
+
+    def retCustomer = ApiResource.GSON.fromJson(
+      '{"email":"test@test.com"}',
+      Customer.class
+    )
+
+    Customer.request(
+      ApiResource.RequestMethod.POST,
+      String.format("%s%s", Stripe.getApiBase(), "/v1/customers"),
+      ["email": "test@test.com"],
+      Customer.class,
+      null
+    ) >> retCustomer
+
     activateSpan(startSpan("test"), true)
 
-    stripeCustomer.create(["email": "test@test.com"])
-
+    Customer.create(["email": "test@test.com"])
+    println("HELLO")
     def scope = activeScope()
     if (scope) {
+      println(activeSpan().getSpanName())
       scope.close()
     }
 
     expect:
 
     assertTraces(1) {
-      trace(0, 2) {
+      trace(0, 1) {
         span(0) {
           serviceName "unnamed-java-app"
           operationName "test"
